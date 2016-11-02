@@ -1,4 +1,4 @@
-/* 
+/*
   USB interface for temperature probe with DS18X20 from Dallas Semiconductor
 */
 
@@ -41,19 +41,19 @@ typedef enum { DETECT, CONFIG, MEASURE, ACQUIRE, IDLE } sensor_state_t;
 #define DS18B20_ID	0x28
 
 /* USB commands */
-#define USB_MEASURE		1
+#define USB_MEASURE	1
 #define USB_READ_TEMP	2
 #define USB_READ_NUMBER	3
 #define USB_READ_ROM	4
-#define USB_DETECT		5
+#define USB_DETECT	5
 #define USB_PRECISION	6
-#define USB_SETMODE		7
-#define USB_GETMODE		8
-#define USB_POKE		9
-#define USB_PEEK		10
+#define USB_SETMODE	7
+#define USB_GETMODE	8
+#define USB_POKE	9
+#define USB_PEEK	10
 
 /* Main loop delay */
-#define MAIN_DELAY_MS		2
+#define MAIN_DELAY_MS	2
 
 /* Repeat measurements every 10 seconds. */
 #define IDLE_INTERVAL_MS	10000
@@ -140,7 +140,7 @@ uint8_t detect_sensors(void) {
       /* Count only DS18X20 sensors. */
       for (i = 0; i < OW_ROMCODE_SIZE; i++ )
         /* Copy ROM. */
-	    id_sensor[cur_sensor][i] = id[i];
+        id_sensor[cur_sensor][i] = id[i];
       cur_sensor++;
     }
   }
@@ -160,69 +160,69 @@ USB_PUBLIC uchar usbFunctionSetup(uchar data[8]) {
 
   switch ( rq->bRequest ) {
 
-	case USB_MEASURE:
-	  if ( state == IDLE ) {
-	    state = MEASURE;
-	    replyBuf[0] = 1;
-	  }
-	  else
-	    replyBuf[0] = 0;
-	  return 1;
+    case USB_MEASURE:
+      if ( state == IDLE ) {
+        state = MEASURE;
+        replyBuf[0] = 1;
+      }
+      else
+        replyBuf[0] = 0;
+      return 1;
 
-	case USB_READ_TEMP:
-	  sensor_id = rq->wValue.bytes[0];
-	  if ( sensor_id >= nr_sensors )
-	    return 0;
-	  for ( i = 0; i < DS18X20_SP_SIZE; i++ )
-	    /* Copy scratchpad. */
-	    replyBuf[i] = sp_sensor[sensor_id][i];
-	  return DS18X20_SP_SIZE;
+    case USB_READ_TEMP:
+      sensor_id = rq->wValue.bytes[0];
+      if ( sensor_id >= nr_sensors )
+        return 0;
+      for ( i = 0; i < DS18X20_SP_SIZE; i++ )
+        /* Copy scratchpad. */
+        replyBuf[i] = sp_sensor[sensor_id][i];
+      return DS18X20_SP_SIZE;
 
-	case USB_READ_NUMBER:
-	  replyBuf[0] = nr_sensors;
-	  return 1;
+    case USB_READ_NUMBER:
+      replyBuf[0] = nr_sensors;
+      return 1;
 
-	case USB_READ_ROM:
-	  sensor_id = rq->wValue.bytes[0];
-	  if ( sensor_id >= nr_sensors )
-	    return 0;
-	  for ( i = 0; i < OW_ROMCODE_SIZE; i++ )
-	    /* Copy ROM. */
-	    replyBuf[i] = id_sensor[sensor_id][i];
-	  return OW_ROMCODE_SIZE;
+    case USB_READ_ROM:
+      sensor_id = rq->wValue.bytes[0];
+      if ( sensor_id >= nr_sensors )
+        return 0;
+      for ( i = 0; i < OW_ROMCODE_SIZE; i++ )
+        /* Copy ROM. */
+        replyBuf[i] = id_sensor[sensor_id][i];
+      return OW_ROMCODE_SIZE;
 
-	case USB_DETECT:
-	  schedule_detection();
-	  replyBuf[0] = 1;
-	  return 1;
+    case USB_DETECT:
+      schedule_detection();
+      replyBuf[0] = 1;
+      return 1;
 
-	case USB_PRECISION:
-	  sensor_id = rq->wValue.bytes[0] & 0x1f;
-	  if ( sensor_id >= nr_sensors )
-	    return 0;
-	  sp_sensor[sensor_id][DS18X20_CONFIG_REG] = ((rq->wValue.bytes[0] >> 1) & 0x60) | 0x1f;
-	  schedule_reconfiguration(sensor_id);
-	  replyBuf[0] = sp_sensor[sensor_id][DS18X20_CONFIG_REG];
-	  return 1;
+    case USB_PRECISION:
+      sensor_id = rq->wValue.bytes[0] & 0x1f;
+      if ( sensor_id >= nr_sensors )
+        return 0;
+      sp_sensor[sensor_id][DS18X20_CONFIG_REG] = ((rq->wValue.bytes[0] >> 1) & 0x60) | 0x1f;
+      schedule_reconfiguration(sensor_id);
+      replyBuf[0] = sp_sensor[sensor_id][DS18X20_CONFIG_REG];
+      return 1;
 
-	case USB_SETMODE:
-	  mode = rq->wValue.bytes[0] & 0x01;
-	case USB_GETMODE:
-	  replyBuf[0] = mode;
-	  return 1;
+    case USB_SETMODE:
+      mode = rq->wValue.bytes[0] & 0x01;
+    case USB_GETMODE:
+      replyBuf[0] = mode;
+      return 1;
 
     case USB_POKE:
       sensor_id = rq->wValue.bytes[0];
-	  if ( sensor_id >= nr_sensors )
-	    return 0;
+      if ( sensor_id >= nr_sensors )
+        return 0;
       sp_sensor[sensor_id][2] = rq->wIndex.bytes[0];
       sp_sensor[sensor_id][3] = rq->wIndex.bytes[1];
       schedule_reconfiguration(sensor_id);
 
     case USB_PEEK:
       sensor_id = rq->wValue.bytes[0];
-	  if ( sensor_id >= nr_sensors )
-	    return 0;
+      if ( sensor_id >= nr_sensors )
+        return 0;
       replyBuf[0] = sp_sensor[sensor_id][2];
       replyBuf[1] = sp_sensor[sensor_id][3];
       return 2;
@@ -376,7 +376,7 @@ int main() {
 #endif
 
         /* Set next state. */
-        state = ACQUIRE; 
+        state = ACQUIRE;
         delay_counter = 0;
 
       }
@@ -388,7 +388,7 @@ int main() {
         /* Set next state. */
         state = IDLE;
         COUNTER_RESET
-        
+
       }
       else if ( state == IDLE && delay_counter > IDLE_INTERVAL_MS ) {
 
@@ -403,7 +403,7 @@ int main() {
         delay_counter += MAIN_DELAY_MS;
 
       /* Apply delay */
-      _delay_ms(MAIN_DELAY_MS); 
+      _delay_ms(MAIN_DELAY_MS);
 
     }
 
