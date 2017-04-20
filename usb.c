@@ -43,7 +43,7 @@ typedef enum { DETECT, CONFIG, MEASURE, ACQUIRE, IDLE } sensor_state_t;
 /* USB commands */
 #define USB_MEASURE	1
 #define USB_READ_TEMP	2
-#define USB_READ_NUMBER	3
+#define USB_READ_NUMBER	3	/* Read number of sensors. */
 #define USB_READ_ROM	4
 #define USB_DETECT	5
 #define USB_PRECISION	6
@@ -51,6 +51,8 @@ typedef enum { DETECT, CONFIG, MEASURE, ACQUIRE, IDLE } sensor_state_t;
 #define USB_GETMODE	8
 #define USB_POKE	9
 #define USB_PEEK	10
+
+#define USB_PRECISION_GET	61
 
 /* Main loop delay */
 #define MAIN_DELAY_MS	2
@@ -195,6 +197,20 @@ USB_PUBLIC uchar usbFunctionSetup(uchar data[8]) {
       schedule_detection();
       replyBuf[0] = 1;
       return 1;
+
+/*
+  Precision is represented by 6th and 7th bit in DS18X20_CONFIG_REG byte.
+*/
+
+    case USB_PRECISION_GET:
+      sensor_id = rq->wValue.bytes[0] & 0x1f;
+      if (sensor_id >= nr_sensors)
+        return 0;
+      if (sp_sensor[sensor_id][DS18X20_CONFIG_REG] & 0x1f == 0x1f) {
+        replyBuf[0] = (sp_sensor[sensor_id][DS18X20_CONFIG_REG] >> 5);
+        return 1;
+      }
+      return 0;
 
     case USB_PRECISION:
       sensor_id = rq->wValue.bytes[0] & 0x1f;
